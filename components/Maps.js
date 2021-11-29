@@ -10,6 +10,7 @@ import {
 import { PanGestureHandler } from 'react-native-gesture-handler'
 
 import MapTile from './MapTile';
+import MapMarker from './MapMarker';
 
 const TILE_SIZE = 256
 
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
 
 })
 
-const pointToPixels = (lon, lat, zoom) => {
+const pointToPixels = (lat, lon, zoom) => {
     let n = Math.pow(2, zoom)
     let lat_radian = lat * Math.PI / 180
     let x = Math.floor((lon + 180) / 360 * n)
@@ -44,8 +45,8 @@ export default class Maps extends Component {
     vertical_tile_count = 0
     zoom = 16
     center = {
-        lon: 59.346896,
-        lat: 18.072280
+        lat: 59.346896,
+        lon: 18.072280
     }
     mapBounds = {
         left: 0, right: 0,
@@ -56,6 +57,7 @@ export default class Maps extends Component {
         top: 0, bottom: 0
     }
     tiles = [];
+    markers = [];
     current_translation = {
         x: 0,
         y: 0
@@ -88,8 +90,18 @@ export default class Maps extends Component {
         console.log("Tiles : " + this.horizontal_tile_count + "x" + this.vertical_tile_count)
     }
 
+    handleMarkers() {
+        if (this.props.markers === undefined)
+            return
+
+        this.markers = []
+        this.props.markers.forEach(marker => {
+            this.markers.push(marker)
+        });
+    }
+
     updateFirstTilePosition(dx, dy) {
-        console.log("update first tile positon ",dx,dy)
+        console.log("update first tile positon ", dx, dy)
         // For now, just handle x,y changes (not zoom)
 
         this.setState({
@@ -143,12 +155,15 @@ export default class Maps extends Component {
     }
 
     render() {
+        console.log(this.props)
+
+        this.handleMarkers()
+
         let transformStyle = {
             transform: [
                 { translateY: this.translateY },
                 { translateX: this.translateX }]
         }
-
 
         this.tiles = []
         for (let x = 0; x < this.horizontal_tile_count; x++) {
@@ -161,18 +176,34 @@ export default class Maps extends Component {
                 }
 
                 tile = <MapTile
-                        key={x*this.vertical_tile_count + y}
-                        style={tile_style}
-                        x={this.state.firstTilePosition.x}
-                        y={this.state.firstTilePosition.y}
-                        relativeX={x}
-                        relativeY={y}
-                        z={this.zoom} />
+                    key={x * this.vertical_tile_count + y}
+                    style={tile_style}
+                    x={this.state.firstTilePosition.x}
+                    y={this.state.firstTilePosition.y}
+                    relativeX={x}
+                    relativeY={y}
+                    z={this.zoom} />
 
                 this.tiles.push(tile)
             }
         }
-        console.log("tiles:", this.tiles)
+
+        console.log("markers:", this.markers)
+
+        markerViews = []
+        i = 0
+        this.markers.forEach(marker => {
+            console.log("marker:", marker)
+            markerViews.push(
+                <MapMarker
+                    key={i++}
+                    lat={marker.lat}
+                    lon={marker.lon}
+                    zoom={this.zoom}
+                    firstTilePosition={this.state.firstTilePosition} />
+            )
+        })
+        console.log("markerViews:", markerViews)
 
         return (
             <View style={styles.container} >
@@ -189,6 +220,7 @@ export default class Maps extends Component {
                             height: this.mapBounds.bottom
                         }}>
                             {this.tiles}
+                            {markerViews}
                         </View>
                     </Animated.View>
                 </PanGestureHandler>

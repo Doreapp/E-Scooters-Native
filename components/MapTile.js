@@ -28,7 +28,7 @@ const userAgent = UserAgent.getUserAgent()
 
 export default MapTile = ({ x, y, z, relativeX, relativeY, style }) => {
     const url = toUrl(x + relativeX, y + relativeY, z)
-    console.log("MapTile: ", x, y, z, "url=", url)
+    // console.log("MapTile: ", x, y, z, "url=", url)
     return (
         <Image
             // style={styles.stretch}
