@@ -6,6 +6,7 @@
 
 import React from 'react';
 import {
+    Animated,
     Image,
     StyleSheet
 } from "react-native";
@@ -22,6 +23,7 @@ const styles = StyleSheet.create({
         height: DISPLAY_SIZE,
         backgroundColor: "#ddd",
         resizeMode: 'stretch',
+        resizeMode: "cover",
         // Uncomment to see the tile behaviour
         // borderWidth: 1,
         // borderColor: '#ff0000'
@@ -42,8 +44,8 @@ export default MapTile = ({ x, y, z, relativeX, relativeY, style }) => {
     const url = toUrl(x + relativeX, y + relativeY, z)
     // console.log("MapTile: ", x, y, z, "url=", url)
     return (
-        <Image
-            style={[styles.image, style]}
+        <Image style={[styles.image,
+            style]}
             source={{
                 uri: url,
                 headers: {
