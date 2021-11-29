@@ -2,60 +2,71 @@ import React, { Component } from 'react';
 import {
     Image,
     Dimensions,
-    ScrollView,
-    SafeAreaView,
-    StyleSheet,
-    StatusBar 
+    View,
+    StyleSheet
 } from "react-native";
+
+import { PanGestureHandler } from 'react-native-gesture-handler'
 
 const styles = StyleSheet.create({
     container: {
+      flex: 1,
+      justifyContent: "space-around",
+      flexDirection: "column",
+      backgroundColor: "#fff",
+      borderColor: "#0000ff",
+      borderWidth: 5
     },
-    scrollView: {
-    },
-    text: {
-        fontSize: 42,
-    },
-});
 
-
+    image: {
+        width: 150,
+        height: 150,
+        backgroundColor: "#c00000",
+        borderColor: "#ff0000",
+        borderWidth: 2
+      },
+  
+   })
 
 export default class Maps extends Component {
-    render() {
+    handleGesture = (evt) => {
+        let { nativeEvent } = evt
+        console.log("Map: event", nativeEvent)
+    }
 
+    getImageDimensions() {
         const s_width = Dimensions.get('window').width; //full width
         const s_height = Dimensions.get('window').height; //full height
-
+    
         const i_width = 1826
         const i_height = 590
-
-        const width_ratio = s_width / i_width, 
-            height_ratio = s_height / i_height 
-
+    
+        const width_ratio = s_width / i_width,
+            height_ratio = s_height / i_height
+    
         const ratio = Math.max(width_ratio, height_ratio)
+    
+        return {
+            'width': final_width = i_width * ratio,
+            'height': final_height = i_height * ratio
+        }
+    }
 
-        const final_width = i_width * ratio, 
-            final_height = i_height * ratio
+    render() {
+        let dimensions = this.getImageDimensions()
 
-        console.log("screen size", s_width, s_height)
-        console.log("img size", i_width, i_height)
-        console.log("ratios", width_ratio, height_ratio, ratio)
-        console.log("final size", final_width, final_height)
+        console.log("Map: final size", dimensions)
 
-        console.log("Render map")
         return (
-            <SafeAreaView style={styles.container}>
-                <ScrollView style={styles.scrollView}>
+            <View style={styles.container} >
+                <PanGestureHandler onGestureEvent={this.handleGesture}>
                     <Image
                         // style={styles.stretch}
-                        style={{
-                            width: final_width,
-                            height: final_height
-                        }}
+                        style={styles.image}
                         source={require('../img/maps/01.png')}
                     />
-                </ScrollView>
-            </SafeAreaView>
+                </PanGestureHandler>
+            </View>
         )
     }
 }

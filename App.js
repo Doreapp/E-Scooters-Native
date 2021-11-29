@@ -7,19 +7,20 @@
  */
 
 import React from 'react';
-import type {Node} from 'react';
+import type { Node } from 'react';
 import {
-  SafeAreaView
-} from 'react-native';
+  GestureHandlerRootView
+} from  'react-native-gesture-handler';
 
 import Maps from './components/Maps';
 
 const App: () => Node = () => {
   console.log("App()")
   return (
-    <SafeAreaView>
+    <GestureHandlerRootView
+    style={{ flex: 1 }}>
       <Maps></Maps>
-    </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 
