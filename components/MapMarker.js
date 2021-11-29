@@ -1,8 +1,10 @@
 import React from 'react';
 import {
     View,
+    Image,
     StyleSheet
 } from "react-native";
+import images from './Images';
 
 
 const WIDTH = 20
@@ -15,8 +17,15 @@ const styles = StyleSheet.create({
         height: HEIGHT,
         backgroundColor: "#ff0000",
         borderRadius: 99,
-        borderColor: "#00ffff",
         zIndex: 10
+    },
+    image: {
+        position: 'absolute',
+        width: WIDTH,
+        height: HEIGHT,
+        zIndex: 10,
+        // borderColor: "#00ffff",
+        // borderWidth: 1,
     }
 })
 
@@ -32,23 +41,47 @@ const pointToPixels = (lat, lon, zoom) => {
     }
 }
 
-export default MapMarker = ({ lat, lon, zoom, firstTilePosition }) => {
+export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, height }) => {
     pixel = pointToPixels(lat, lon, zoom)
 
+    if (width === undefined) {
+        width = WIDTH
+    }
+    if (height === undefined) {
+        height = HEIGHT
+    }
 
     let transformStyle = {
         transform: [
-            {translateX: pixel.x - firstTilePosition.x*TILE_SIZE - WIDTH/2},
-            {translateY: pixel.y - firstTilePosition.y*TILE_SIZE - HEIGHT/2}
+            { translateX: pixel.x - firstTilePosition.x * TILE_SIZE - width / 2 },
+            { translateY: pixel.y - firstTilePosition.y * TILE_SIZE - height / 2 }
         ]
     }
 
-    console.log("Marker: ", transformStyle)
+    let sizeStyle = {
+        width: width,
+        height: height
+    }
 
+    console.log(icon)
 
-    return (
-        <View
-            style={[styles.default, transformStyle]}
-        />
-    )
+    if (icon == undefined) {
+        return (
+            <View
+                style={[
+                    styles.default,
+                    transformStyle,
+                    sizeStyle]}
+            />
+        )
+    } else {
+        return (
+            <Image
+                style={[styles.image, 
+                    transformStyle,
+                     sizeStyle]}
+                    source={icon}
+            />
+        )
+    }
 }

@@ -197,6 +197,9 @@ export default class Maps extends Component {
             markerViews.push(
                 <MapMarker
                     key={i++}
+                    icon={marker.icon}
+                    width={marker.iconWidth}
+                    height={marker.iconHeight}
                     lat={marker.lat}
                     lon={marker.lon}
                     zoom={this.zoom}
