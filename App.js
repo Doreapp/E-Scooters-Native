@@ -12,11 +12,13 @@ import {
   SafeAreaView
 } from 'react-native';
 
+import Maps from './components/Maps';
 
 const App: () => Node = () => {
-
+  console.log("App()")
   return (
     <SafeAreaView>
+      <Maps></Maps>
     </SafeAreaView>
   );
 };
