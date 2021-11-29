@@ -16,7 +16,7 @@ const TILE_SIZE = 256
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "space-around",
+        justifyContent: "flex-start",
         flexDirection: "column",
         backgroundColor: "#fff",
         borderColor: "#0000ff",
@@ -44,12 +44,22 @@ const pointToPixels = (lon, lat, zoom) => {
 export default class Maps extends Component {
     translateX = new Animated.Value(0)
     translateY = new Animated.Value(0)
+    horizontal_tile_count = 0
+    vertical_tile_count = 0
     zoom = 16
     center = {
         lon: 59.346896,
         lat: 18.072280
     }
-
+    mapBounds = {
+        left: 0, right: 0,
+        top: 0, bottom: 0
+    }
+    screenBounds = {
+        left: 0, right: 0,
+        top: 0, bottom: 0
+    }
+    tiles = [];
     current_translation = {
         x: 0,
         y: 0
@@ -59,64 +69,114 @@ export default class Maps extends Component {
         y: 0
     }
 
+    constructor() {
+        super();
+
+        let firstTilePosition = pointToPixels(this.center.lat, this.center.lon, this.zoom)
+
+        this.state = {
+            firstTilePosition: firstTilePosition
+        }
+
+        let dimensions = Dimensions.get('window')
+        this.horizontal_tile_count = Math.ceil(dimensions.width / TILE_SIZE) + 1
+        this.vertical_tile_count = Math.ceil(dimensions.height / TILE_SIZE) + 1
+
+        this.mapBounds.right = this.horizontal_tile_count * TILE_SIZE
+        this.mapBounds.bottom = this.vertical_tile_count * TILE_SIZE
+
+        this.screenBounds.right = dimensions.width
+        this.screenBounds.bottom = dimensions.height
+
+        console.log("Map: screen dimensions", dimensions)
+        console.log("Tiles : " + this.horizontal_tile_count + "x" + this.vertical_tile_count)
+    }
+
+    updateFirstTilePosition(dx, dy) {
+        console.log("update first tile positon ",dx,dy)
+        // For now, just handle x,y changes (not zoom)
+
+        this.setState({
+            firstTilePosition: {
+                x: this.state.firstTilePosition.x + dx,
+                y: this.state.firstTilePosition.y + dy
+            }
+        })
+    }
+
     handleGesture = (evt) => {
         let { nativeEvent } = evt
 
         this.current_translation.x = nativeEvent.translationX + this.delta.x
         this.current_translation.y = nativeEvent.translationY + this.delta.y
+
+        if (this.current_translation.x + this.mapBounds.left > this.screenBounds.left) {
+            // Sliding too much to the right
+            this.current_translation.x -= TILE_SIZE
+            this.delta.x -= TILE_SIZE
+            this.updateFirstTilePosition(-1, 0)
+        } else if (this.current_translation.x + this.mapBounds.right < this.screenBounds.right) {
+            // Sliding too much to the left
+            this.current_translation.x += TILE_SIZE
+            this.delta.x += TILE_SIZE
+            this.updateFirstTilePosition(+1, 0)
+        }
+        if (this.current_translation.y + this.mapBounds.top > this.screenBounds.top) {
+            // Sliding too much to the bottom
+            this.current_translation.y -= TILE_SIZE
+            this.delta.y -= TILE_SIZE
+            this.updateFirstTilePosition(0, -1)
+        } else if (this.current_translation.y + this.mapBounds.bottom < this.screenBounds.bottom) {
+            // Sliding too much to the top
+            this.current_translation.y += TILE_SIZE
+            this.delta.y += TILE_SIZE
+            this.updateFirstTilePosition(0, +1)
+        }
+
         this.translateX.setValue(this.current_translation.x)
         this.translateY.setValue(this.current_translation.y)
-
-        console.log("Map: event", nativeEvent.translationX, nativeEvent.translationY)
     }
 
     handleStateChange = (evt) => {
         let { nativeEvent } = evt
-        console.log("state changed ", nativeEvent, this.current_translation)
         if (nativeEvent.state == 2) {
-            console.log("touch start")
+            // The user start to touch the screen
             this.delta.x = this.current_translation.x
             this.delta.y = this.current_translation.y
         }
     }
 
     render() {
-        let dimensions = Dimensions.get('window')
-        const horizontal_tile_count = Math.ceil(dimensions.width / TILE_SIZE) + 1
-        const vertical_tile_count = Math.ceil(dimensions.height / TILE_SIZE) + 1
-
-        console.log("Map: screen dimensions", dimensions)
-        console.log("Tiles : " + horizontal_tile_count + "x" + vertical_tile_count)
-
         let transformStyle = {
             transform: [
                 { translateY: this.translateY },
                 { translateX: this.translateX }]
         }
 
-        let pixel = pointToPixels(this.center.lat, this.center.lon, this.zoom)
-        let x_tiles = parseInt(pixel.x),
-            y_tiles = parseInt(pixel.y)
 
-        tiles = [];
-
-        for (let x = 0; x < horizontal_tile_count; x++) {
-            for (let y = 0; y < vertical_tile_count; y++) {
+        this.tiles = []
+        for (let x = 0; x < this.horizontal_tile_count; x++) {
+            for (let y = 0; y < this.vertical_tile_count; y++) {
                 tile_style = {
                     transform: [
-                    { translateX: x * TILE_SIZE },
-                    { translateY: x * (- vertical_tile_count * TILE_SIZE)}
-                ]}
+                        { translateX: x * TILE_SIZE },
+                        { translateY: x * (- this.vertical_tile_count * TILE_SIZE) }
+                    ]
+                }
 
-                tiles.push(
-                    <MapTile
+                tile = <MapTile
+                        key={x*this.vertical_tile_count + y}
                         style={tile_style}
-                        x={x_tiles + x}
-                        y={y_tiles + y}
+                        x={this.state.firstTilePosition.x}
+                        y={this.state.firstTilePosition.y}
+                        relativeX={x}
+                        relativeY={y}
                         z={this.zoom} />
-                )
+
+                this.tiles.push(tile)
             }
         }
+        console.log("tiles:", this.tiles)
 
         return (
             <View style={styles.container} >
@@ -125,14 +185,14 @@ export default class Maps extends Component {
                     <Animated.View style={[
                         styles.animatedView,
                         transformStyle, {
-                            width: dimensions.width,
-                            height: dimensions.height
+                            width: this.mapBounds.right,
+                            height: this.mapBounds.bottom
                         }]}>
                         <View style={{
-                            width: dimensions.width,
-                            height: dimensions.height
+                            width: this.mapBounds.right,
+                            height: this.mapBounds.bottom
                         }}>
-                            {tiles}
+                            {this.tiles}
                         </View>
                     </Animated.View>
                 </PanGestureHandler>
