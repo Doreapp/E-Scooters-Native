@@ -13,22 +13,11 @@ import {
 } from 'react-native-gesture-handler';
 
 import Maps from './components/Maps';
-import Images from './components/Images';
-
-// Scooters markers
-const markers = [
-  {
-    lon: 18.07333891208995,
-    lat: 59.34686800619177,
-    icon: Images.pins.lime,
-    iconWidth: 34.1,
-    iconHeight: 44.25,
-  }
-  // TODO add more pins
-]
+import getScootersMarkers from './components/ScootersPins'
 
 const App: () => Node = () => {
-  console.log("App()")
+  markers = getScootersMarkers()
+
   return (
     <GestureHandlerRootView
       style={{ flex: 1 }}>

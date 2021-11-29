@@ -69,7 +69,7 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
     let transformStyle = {
         transform: [
             { translateX: pixel.x - firstTilePosition.x * TILE_SIZE - width / 2 },
-            { translateY: pixel.y - firstTilePosition.y * TILE_SIZE - height / 2 }
+            { translateY: pixel.y - firstTilePosition.y * TILE_SIZE - height }
         ]
     }
 
@@ -91,10 +91,10 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
     } else {
         return (
             <Image
-                style={[styles.image, 
+                style={[styles.image,
                     transformStyle,
-                     sizeStyle]}
-                    source={icon}
+                    sizeStyle]}
+                source={icon}
             />
         )
     }
