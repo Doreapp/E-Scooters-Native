@@ -8,6 +8,9 @@ import {
 } from "react-native";
 
 import { PanGestureHandler } from 'react-native-gesture-handler'
+import UserAgent from 'react-native-user-agent';
+
+const TILE_SIZE = 256
 
 const styles = StyleSheet.create({
     container: {
@@ -20,10 +23,11 @@ const styles = StyleSheet.create({
     },
 
     image: {
-        width: 150,
-        height: 150,
-        backgroundColor: "#c00000",
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        backgroundColor: "#fff",
         borderColor: "#ff0000",
+        resizeMode : 'stretch',
         borderWidth: 2
     },
     animatedView: {
@@ -35,9 +39,32 @@ const styles = StyleSheet.create({
 
 })
 
+const pointToPixels = (lon, lat, zoom) => {
+    r = Math.pow(2, zoom) * TILE_SIZE
+    lat = Math.PI * lat / 360.0
+
+    x = parseInt((lon + 180.0) / 360.0 * r)
+    y = parseInt((1.0 - Math.log(Math.tan(lat) + (1.0 / Math.cos(lat))) / Math.PI) / 2.0 * r)
+
+    return {
+        x: x,
+        y:y
+    }
+}
+
+const toUrl = (x,y,z) => {
+    return "https://c.tile.openstreetmap.org/"+z+"/"+x+"/"+y+".png"
+} 
+
 export default class Maps extends Component {
     translateX = new Animated.Value(0)
     translateY = new Animated.Value(0)
+    zoom = 16
+    center = {
+        lat: 59.346896080909026,
+        lon: 18.07227980042113
+    }
+
     current_translation = {
         x: 0,
         y: 0
@@ -86,6 +113,8 @@ export default class Maps extends Component {
         }
     }
 
+    
+
     render() {
         let dimensions = this.getImageDimensions()
 
@@ -97,6 +126,12 @@ export default class Maps extends Component {
                 { translateX: this.translateX }]
         }
 
+        let pixel = pointToPixels(this.center.lat, this.center.lon, this.zoom)
+        let x_tiles = parseInt(pixel.x / TILE_SIZE), 
+            y_tiles = parseInt(pixel.y / TILE_SIZE)
+
+        console.log("Given User Agent: ",UserAgent.getUserAgent())
+
         return (
             <View style={styles.container} >
                 <PanGestureHandler onGestureEvent={this.handleGesture}
@@ -105,7 +140,24 @@ export default class Maps extends Component {
                         <Image
                             // style={styles.stretch}
                             style={styles.image}
-                            source={require('../img/maps/01.png')}
+                            source={{
+                                uri: "https://b.tile.openstreetmap.org/12/2048/1361.png",
+                                headers: {
+                                    'User-Agent': UserAgent.getUserAgent()
+                                }
+                            }}
+                            onLoad={(evt) => {
+                                console.log("On Load", evt)
+                            }}
+                            onLoadEnd   ={() => {
+                                console.log("On Load end")
+                            }}
+                            onLoadStart={() => {
+                                console.log("On Load start")
+                            }}
+                            onProgress={() => {
+                                console.log("On progress")
+                            }}
                         />
                     </Animated.View>
                 </PanGestureHandler>
