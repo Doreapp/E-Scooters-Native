@@ -13,8 +13,7 @@ const styles = StyleSheet.create({
     image: {
         width: DISPLAY_SIZE,
         height: DISPLAY_SIZE,
-        backgroundColor: "#fff",
-        borderColor: "#ff0000",
+        backgroundColor: "#ddd",
         resizeMode: 'stretch',
         borderWidth: 1
     }

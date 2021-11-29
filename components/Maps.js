@@ -19,12 +19,8 @@ const styles = StyleSheet.create({
         justifyContent: "flex-start",
         flexDirection: "column",
         backgroundColor: "#fff",
-        borderColor: "#0000ff",
-        borderWidth: 5
     },
     animatedView: {
-        borderColor: "#00ff00",
-        borderWidth: 2
     },
 
 })
