@@ -1,15 +1,24 @@
+/**
+ * Marker placed on the map, by coordinates 
+ * 
+ * Either provide an icon (and iconWidth/iconHeight to ensure that it will be nicelly rendered),
+ * or use the default display: a red circle.
+ */
+
 import React from 'react';
 import {
     View,
     Image,
     StyleSheet
 } from "react-native";
-import images from './Images';
 
-
+// Default size
 const WIDTH = 20
 const HEIGHT = 20
+
+// OSM Tile Size
 const TILE_SIZE = 256
+
 const styles = StyleSheet.create({
     default: {
         position: 'absolute',
@@ -29,6 +38,9 @@ const styles = StyleSheet.create({
     }
 })
 
+/**
+ * Return the position of a point the OSM space from coordinates (lat/lon) and zoom
+ */
 const pointToPixels = (lat, lon, zoom) => {
     let n = Math.pow(2, zoom) * TILE_SIZE
     let lat_radian = lat * Math.PI / 180
@@ -42,8 +54,10 @@ const pointToPixels = (lat, lon, zoom) => {
 }
 
 export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, height }) => {
+    // Find position
     pixel = pointToPixels(lat, lon, zoom)
 
+    // Set width/height
     if (width === undefined) {
         width = WIDTH
     }
@@ -51,6 +65,7 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
         height = HEIGHT
     }
 
+    // Position = pixelPosition - TilePosition
     let transformStyle = {
         transform: [
             { translateX: pixel.x - firstTilePosition.x * TILE_SIZE - width / 2 },
@@ -63,9 +78,8 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
         height: height
     }
 
-    console.log(icon)
-
     if (icon == undefined) {
+        // Return default
         return (
             <View
                 style={[

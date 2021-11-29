@@ -15,6 +15,7 @@ import {
 import Maps from './components/Maps';
 import Images from './components/Images';
 
+// Scooters markers
 const markers = [
   {
     lon: 18.07333891208995,
