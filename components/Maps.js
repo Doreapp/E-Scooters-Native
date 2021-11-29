@@ -1,6 +1,11 @@
+/**
+ * Map component, handling movements and markers
+ * 
+ * MUST BE PLACED IN A GestureHandlerRootView
+ */
+
 import React, { Component } from 'react';
 import {
-    Image,
     Dimensions,
     View,
     StyleSheet,
@@ -10,7 +15,9 @@ import {
 import { PanGestureHandler } from 'react-native-gesture-handler'
 
 import MapTile from './MapTile';
+import MapMarker from './MapMarker';
 
+// OSM Tile Size
 const TILE_SIZE = 256
 
 const styles = StyleSheet.create({
@@ -25,7 +32,10 @@ const styles = StyleSheet.create({
 
 })
 
-const pointToPixels = (lon, lat, zoom) => {
+/**
+ * Retrun TILE position from coorinates (lat/lon) and zoom
+ */
+const pointToPixels = (lat, lon, zoom) => {
     let n = Math.pow(2, zoom)
     let lat_radian = lat * Math.PI / 180
     let x = Math.floor((lon + 180) / 360 * n)
@@ -38,28 +48,46 @@ const pointToPixels = (lon, lat, zoom) => {
 }
 
 export default class Maps extends Component {
+    // Used translation value (see https://blog.bitsrc.io/using-the-gesture-handler-in-react-native-c07f84ddfa49)
     translateX = new Animated.Value(0)
     translateY = new Animated.Value(0)
+
+    // Number of tiles on horizontal/vertical axis
     horizontal_tile_count = 0
     vertical_tile_count = 0
+
+    // Zoom value (for now fixed)
     zoom = 16
+
+    // Center coordinates (KTH)
     center = {
-        lon: 59.346896,
-        lat: 18.072280
+        lat: 59.346896,
+        lon: 18.072280
     }
+
+    // Map object (tiles) bounds 
+    // TODO replace left,top,right,bottom by width,height
     mapBounds = {
         left: 0, right: 0,
         top: 0, bottom: 0
     }
+    // Screen bounds 
+    // TODO replace left,top,right,bottom by width,height
     screenBounds = {
         left: 0, right: 0,
         top: 0, bottom: 0
     }
-    tiles = [];
+
+    // Markers object
+    markers = [];
+
+    // Current translation (need to be followed to remember position when stopping motion)
     current_translation = {
         x: 0,
         y: 0
     }
+
+    // Delta to apply on translation transform 
     delta = {
         x: 0,
         y: 0
@@ -70,10 +98,13 @@ export default class Maps extends Component {
 
         let firstTilePosition = pointToPixels(this.center.lat, this.center.lon, this.zoom)
 
+        // Use **state** to be enable to update the first tile position
+        // The firstTilePosition is the position (in OSM space) of the top-left tile 
         this.state = {
             firstTilePosition: firstTilePosition
         }
 
+        // Get and set dimensions constants
         let dimensions = Dimensions.get('window')
         this.horizontal_tile_count = Math.ceil(dimensions.width / TILE_SIZE) + 1
         this.vertical_tile_count = Math.ceil(dimensions.height / TILE_SIZE) + 1
@@ -84,12 +115,12 @@ export default class Maps extends Component {
         this.screenBounds.right = dimensions.width
         this.screenBounds.bottom = dimensions.height
 
-        console.log("Map: screen dimensions", dimensions)
-        console.log("Tiles : " + this.horizontal_tile_count + "x" + this.vertical_tile_count)
+        // console.log("Map: screen dimensions", dimensions)
+        // console.log("Tiles : " + this.horizontal_tile_count + "x" + this.vertical_tile_count)
     }
 
     updateFirstTilePosition(dx, dy) {
-        console.log("update first tile positon ",dx,dy)
+        console.log("update first tile positon ", dx, dy)
         // For now, just handle x,y changes (not zoom)
 
         this.setState({
@@ -100,12 +131,17 @@ export default class Maps extends Component {
         })
     }
 
+    /** 
+    * Callback whenever the user slides on the map object 
+    */
     handleGesture = (evt) => {
         let { nativeEvent } = evt
 
+        // Update current translation
         this.current_translation.x = nativeEvent.translationX + this.delta.x
         this.current_translation.y = nativeEvent.translationY + this.delta.y
 
+        // Handle bounds limits
         if (this.current_translation.x + this.mapBounds.left > this.screenBounds.left) {
             // Sliding too much to the right
             this.current_translation.x -= TILE_SIZE
@@ -133,10 +169,13 @@ export default class Maps extends Component {
         this.translateY.setValue(this.current_translation.y)
     }
 
+    /**
+     * Callback on state change (including user pressing and releasing the screen) 
+     */
     handleStateChange = (evt) => {
         let { nativeEvent } = evt
         if (nativeEvent.state == 2) {
-            // The user start to touch the screen
+            // The user start to touch the screen (state 2)
             this.delta.x = this.current_translation.x
             this.delta.y = this.current_translation.y
         }
@@ -149,8 +188,8 @@ export default class Maps extends Component {
                 { translateX: this.translateX }]
         }
 
-
-        this.tiles = []
+        // Build tile views
+        tiles = []
         for (let x = 0; x < this.horizontal_tile_count; x++) {
             for (let y = 0; y < this.vertical_tile_count; y++) {
                 tile_style = {
@@ -161,18 +200,43 @@ export default class Maps extends Component {
                 }
 
                 tile = <MapTile
-                        key={x*this.vertical_tile_count + y}
-                        style={tile_style}
-                        x={this.state.firstTilePosition.x}
-                        y={this.state.firstTilePosition.y}
-                        relativeX={x}
-                        relativeY={y}
-                        z={this.zoom} />
+                    key={x * this.vertical_tile_count + y}
+                    style={tile_style}
+                    x={this.state.firstTilePosition.x}
+                    y={this.state.firstTilePosition.y}
+                    relativeX={x}
+                    relativeY={y}
+                    z={this.zoom} />
 
-                this.tiles.push(tile)
+                tiles.push(tile)
             }
         }
-        console.log("tiles:", this.tiles)
+
+        // Build marker views
+        markerViews = []
+        if (this.props.markers !== undefined) {
+            i = 0
+            this.props.markers.forEach(marker => {
+                // console.log("marker:", marker)
+                markerViews.push(
+                    <MapMarker
+                        key={i++}
+                        icon={marker.icon}
+                        width={marker.iconWidth}
+                        height={marker.iconHeight}
+                        lat={marker.lat}
+                        lon={marker.lon}
+                        zoom={this.zoom}
+                        firstTilePosition={this.state.firstTilePosition} />
+                )
+            })
+            // console.log("markerViews:", markerViews)
+        }
+
+        let fillMapStyle = {
+            width: this.mapBounds.right,
+            height: this.mapBounds.bottom
+        }
 
         return (
             <View style={styles.container} >
@@ -180,15 +244,11 @@ export default class Maps extends Component {
                     onHandlerStateChange={this.handleStateChange}>
                     <Animated.View style={[
                         styles.animatedView,
-                        transformStyle, {
-                            width: this.mapBounds.right,
-                            height: this.mapBounds.bottom
-                        }]}>
-                        <View style={{
-                            width: this.mapBounds.right,
-                            height: this.mapBounds.bottom
-                        }}>
-                            {this.tiles}
+                        transformStyle, 
+                        fillMapStyle]}>
+                        <View style={fillMapStyle}>
+                            {tiles}
+                            {markerViews}
                         </View>
                     </Animated.View>
                 </PanGestureHandler>
