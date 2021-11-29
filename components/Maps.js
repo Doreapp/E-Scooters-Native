@@ -8,7 +8,8 @@ import {
 } from "react-native";
 
 import { PanGestureHandler } from 'react-native-gesture-handler'
-import UserAgent from 'react-native-user-agent';
+
+import MapTile from './MapTile';
 
 const TILE_SIZE = 256
 
@@ -21,18 +22,7 @@ const styles = StyleSheet.create({
         borderColor: "#0000ff",
         borderWidth: 5
     },
-
-    image: {
-        width: TILE_SIZE,
-        height: TILE_SIZE,
-        backgroundColor: "#fff",
-        borderColor: "#ff0000",
-        resizeMode : 'stretch',
-        borderWidth: 2
-    },
     animatedView: {
-        width: 200,
-        height: 200,
         borderColor: "#00ff00",
         borderWidth: 2
     },
@@ -40,29 +30,24 @@ const styles = StyleSheet.create({
 })
 
 const pointToPixels = (lon, lat, zoom) => {
-    r = Math.pow(2, zoom) * TILE_SIZE
-    lat = Math.PI * lat / 360.0
-
-    x = parseInt((lon + 180.0) / 360.0 * r)
-    y = parseInt((1.0 - Math.log(Math.tan(lat) + (1.0 / Math.cos(lat))) / Math.PI) / 2.0 * r)
+    let n = Math.pow(2, zoom)
+    let lat_radian = lat * Math.PI / 180
+    let x = Math.floor((lon + 180) / 360 * n)
+    let y = Math.floor((1 - Math.log(Math.tan(lat_radian) + 1 / Math.cos(lat_radian)) / Math.PI) / 2 * n)
 
     return {
         x: x,
-        y:y
+        y: y
     }
 }
-
-const toUrl = (x,y,z) => {
-    return "https://c.tile.openstreetmap.org/"+z+"/"+x+"/"+y+".png"
-} 
 
 export default class Maps extends Component {
     translateX = new Animated.Value(0)
     translateY = new Animated.Value(0)
     zoom = 16
     center = {
-        lat: 59.346896080909026,
-        lon: 18.07227980042113
+        lon: 59.346896,
+        lat: 18.072280
     }
 
     current_translation = {
@@ -88,37 +73,20 @@ export default class Maps extends Component {
     handleStateChange = (evt) => {
         let { nativeEvent } = evt
         console.log("state changed ", nativeEvent, this.current_translation)
-        if (nativeEvent.state == 2){
+        if (nativeEvent.state == 2) {
             console.log("touch start")
             this.delta.x = this.current_translation.x
             this.delta.y = this.current_translation.y
         }
     }
 
-    getImageDimensions() {
-        const s_width = Dimensions.get('window').width; //full width
-        const s_height = Dimensions.get('window').height; //full height
-
-        const i_width = 1826
-        const i_height = 590
-
-        const width_ratio = s_width / i_width,
-            height_ratio = s_height / i_height
-
-        const ratio = Math.max(width_ratio, height_ratio)
-
-        return {
-            'width': final_width = i_width * ratio,
-            'height': final_height = i_height * ratio
-        }
-    }
-
-    
-
     render() {
-        let dimensions = this.getImageDimensions()
+        let dimensions = Dimensions.get('window')
+        const horizontal_tile_count = Math.ceil(dimensions.width / TILE_SIZE) + 1
+        const vertical_tile_count = Math.ceil(dimensions.height / TILE_SIZE) + 1
 
-        console.log("Map: final size", dimensions)
+        console.log("Map: screen dimensions", dimensions)
+        console.log("Tiles : " + horizontal_tile_count + "x" + vertical_tile_count)
 
         let transformStyle = {
             transform: [
@@ -127,38 +95,45 @@ export default class Maps extends Component {
         }
 
         let pixel = pointToPixels(this.center.lat, this.center.lon, this.zoom)
-        let x_tiles = parseInt(pixel.x / TILE_SIZE), 
-            y_tiles = parseInt(pixel.y / TILE_SIZE)
+        let x_tiles = parseInt(pixel.x),
+            y_tiles = parseInt(pixel.y)
 
-        console.log("Given User Agent: ",UserAgent.getUserAgent())
+        tiles = [];
+
+        for (let x = 0; x < horizontal_tile_count; x++) {
+            for (let y = 0; y < vertical_tile_count; y++) {
+                tile_style = {
+                    transform: [
+                    { translateX: x * TILE_SIZE },
+                    { translateY: x * (- vertical_tile_count * TILE_SIZE)}
+                ]}
+
+                tiles.push(
+                    <MapTile
+                        style={tile_style}
+                        x={x_tiles + x}
+                        y={y_tiles + y}
+                        z={this.zoom} />
+                )
+            }
+        }
 
         return (
             <View style={styles.container} >
                 <PanGestureHandler onGestureEvent={this.handleGesture}
                     onHandlerStateChange={this.handleStateChange}>
-                    <Animated.View style={[styles.animatedView, transformStyle]}>
-                        <Image
-                            // style={styles.stretch}
-                            style={styles.image}
-                            source={{
-                                uri: "https://b.tile.openstreetmap.org/12/2048/1361.png",
-                                headers: {
-                                    'User-Agent': UserAgent.getUserAgent()
-                                }
-                            }}
-                            onLoad={(evt) => {
-                                console.log("On Load", evt)
-                            }}
-                            onLoadEnd   ={() => {
-                                console.log("On Load end")
-                            }}
-                            onLoadStart={() => {
-                                console.log("On Load start")
-                            }}
-                            onProgress={() => {
-                                console.log("On progress")
-                            }}
-                        />
+                    <Animated.View style={[
+                        styles.animatedView,
+                        transformStyle, {
+                            width: dimensions.width,
+                            height: dimensions.height
+                        }]}>
+                        <View style={{
+                            width: dimensions.width,
+                            height: dimensions.height
+                        }}>
+                            {tiles}
+                        </View>
                     </Animated.View>
                 </PanGestureHandler>
             </View>
