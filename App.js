@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React, { useState, View } from 'react';
+import React, { useState } from 'react';
 import type { Node } from 'react';
 import {
   GestureHandlerRootView
@@ -14,6 +14,8 @@ import {
 
 import Maps from './components/Maps';
 import getScooters from './components/ScootersPins'
+import LocateUserButton from './components/LocateUserButton';
+import { View } from 'react-native';
 
 const App: () => Node = () => {
   scooters = getScooters()
@@ -31,14 +33,19 @@ const App: () => Node = () => {
   }
 
   return (
-    <GestureHandlerRootView
-      style={{ flex: 1 }}>
-      <Maps
-        scooters={scooters}
-        onScooterClick={onScooterClick}
-        userPosition={userPosition}
-      ></Maps>
-    </GestureHandlerRootView>
+    <View style={{ flex: 1 }} >
+      <GestureHandlerRootView
+        style={{ flex: 1 }}>
+        <Maps
+          scooters={scooters}
+          onScooterClick={onScooterClick}
+          userPosition={userPosition}
+        ></Maps>
+      </GestureHandlerRootView>
+      <LocateUserButton
+        onClick={() => { console.log("You want to location?") }}
+      />
+    </View>
   );
 };
 
