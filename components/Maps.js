@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
  * Retrun TILE position from coorinates (lat/lon) and zoom
  */
 const pointToPixels = (lat, lon, zoom) => {
-    let n = Math.pow(2, zoom)
+    let n = Math.pow(2, zoom) * TILE_SIZE
     let lat_radian = lat * Math.PI / 180
     let x = Math.floor((lon + 180) / 360 * n)
     let y = Math.floor((1 - Math.log(Math.tan(lat_radian) + 1 / Math.cos(lat_radian)) / Math.PI) / 2 * n)
@@ -66,16 +66,14 @@ export default class Maps extends Component {
     }
 
     // Map object (tiles) bounds 
-    // TODO replace left,top,right,bottom by width,height
     mapBounds = {
-        left: 0, right: 0,
-        top: 0, bottom: 0
+        width: 0,
+        height: 0
     }
     // Screen bounds 
-    // TODO replace left,top,right,bottom by width,height
     screenBounds = {
-        left: 0, right: 0,
-        top: 0, bottom: 0
+        width: 0,
+        height: 0
     }
 
     // Markers object
@@ -95,38 +93,74 @@ export default class Maps extends Component {
 
     constructor() {
         super();
-
-        let firstTilePosition = pointToPixels(this.center.lat, this.center.lon, this.zoom)
-
-        // Use **state** to be enable to update the first tile position
-        // The firstTilePosition is the position (in OSM space) of the top-left tile 
-        this.state = {
-            firstTilePosition: firstTilePosition
-        }
-
         // Get and set dimensions constants
         let dimensions = Dimensions.get('window')
         this.horizontal_tile_count = Math.ceil(dimensions.width / TILE_SIZE) + 1
         this.vertical_tile_count = Math.ceil(dimensions.height / TILE_SIZE) + 1
 
-        this.mapBounds.right = this.horizontal_tile_count * TILE_SIZE
-        this.mapBounds.bottom = this.vertical_tile_count * TILE_SIZE
+        this.mapBounds.width = this.horizontal_tile_count * TILE_SIZE
+        this.mapBounds.height = this.vertical_tile_count * TILE_SIZE
 
-        this.screenBounds.right = dimensions.width
-        this.screenBounds.bottom = dimensions.height
+        this.screenBounds.width = dimensions.width
+        this.screenBounds.height = dimensions.height
 
-        // console.log("Map: screen dimensions", dimensions)
-        // console.log("Tiles : " + this.horizontal_tile_count + "x" + this.vertical_tile_count)
+        let firstPosition = pointToPixels(this.center.lat, this.center.lon, this.zoom)
+        // Use **state** to be enable to update the first tile position
+        // The firstTilePosition is the position (in OSM space) of the top-left tile 
+        this.state = {
+            firstTilePosition: {
+                x: parseInt((firstPosition.x - this.screenBounds.width/2) / TILE_SIZE),
+                y: parseInt((firstPosition.y - this.screenBounds.height/2) / TILE_SIZE)
+            }
+        }
     }
 
     updateFirstTilePosition(dx, dy) {
-        console.log("update first tile positon ", dx, dy)
+        // console.log("update first tile positon ", dx, dy)
         // For now, just handle x,y changes (not zoom)
 
         this.setState({
             firstTilePosition: {
                 x: this.state.firstTilePosition.x + dx,
                 y: this.state.firstTilePosition.y + dy
+            }
+        })
+    }
+
+    centerOn(lat, lon) {
+        // Requested position in OSM state
+        const requestedCenterPosition = pointToPixels(lat, lon, this.zoom)
+        // Current accurate (left-top corner) position in OSM state
+        const currentAccuratePosition = {
+            x: this.state.firstTilePosition.x*TILE_SIZE,
+            y: this.state.firstTilePosition.y*TILE_SIZE
+        }
+        // Requested position of the left-top corner (in OSM state)
+        const requestedActualPosition = {
+            x: requestedCenterPosition.x - this.screenBounds.width/2 + this.current_translation.x,
+            y: requestedCenterPosition.y - this.screenBounds.height/2 + this.current_translation.y,
+        }
+
+        // Delta of positions (requested-current)
+        let positionDelta = {
+            x: requestedActualPosition.x - currentAccuratePosition.x,
+            y: requestedActualPosition.y - currentAccuratePosition.y
+        }
+
+        // Delta of tiles
+        let dx = parseInt(positionDelta.x/TILE_SIZE)
+        let dy = parseInt(positionDelta.y/TILE_SIZE)
+
+        if (dx*dx > 0 || dy*dy > 0){
+            // Update the "first" (top-left corner) tile (OSM) position
+            this.updateFirstTilePosition(dx,dy)
+        }
+
+        // Translate the remaining delta simulating a user input (translation) 
+        this.handleGesture({
+            nativeEvent: {
+                translationX: -(positionDelta.x - dx),
+                translationY: -(positionDelta.y - dy),
             }
         })
     }
@@ -142,23 +176,23 @@ export default class Maps extends Component {
         this.current_translation.y = nativeEvent.translationY + this.delta.y
 
         // Handle bounds limits
-        if (this.current_translation.x + this.mapBounds.left > this.screenBounds.left) {
+        if (this.current_translation.x > 0) {
             // Sliding too much to the right
             this.current_translation.x -= TILE_SIZE
             this.delta.x -= TILE_SIZE
             this.updateFirstTilePosition(-1, 0)
-        } else if (this.current_translation.x + this.mapBounds.right < this.screenBounds.right) {
+        } else if (this.current_translation.x + this.mapBounds.width < this.screenBounds.width) {
             // Sliding too much to the left
             this.current_translation.x += TILE_SIZE
             this.delta.x += TILE_SIZE
             this.updateFirstTilePosition(+1, 0)
         }
-        if (this.current_translation.y + this.mapBounds.top > this.screenBounds.top) {
+        if (this.current_translation.y > 0) {
             // Sliding too much to the bottom
             this.current_translation.y -= TILE_SIZE
             this.delta.y -= TILE_SIZE
             this.updateFirstTilePosition(0, -1)
-        } else if (this.current_translation.y + this.mapBounds.bottom < this.screenBounds.bottom) {
+        } else if (this.current_translation.y + this.mapBounds.height < this.screenBounds.height) {
             // Sliding too much to the top
             this.current_translation.y += TILE_SIZE
             this.delta.y += TILE_SIZE
@@ -213,29 +247,34 @@ export default class Maps extends Component {
         }
 
         // Build marker views
-        markerViews = []
-        if (this.props.markers !== undefined) {
+        scootersViews = []
+        if (this.props.scooters !== undefined) {
             i = 0
-            this.props.markers.forEach(marker => {
+            this.props.scooters.forEach(scooter => {
                 // console.log("marker:", marker)
-                markerViews.push(
+                scootersViews.push(
                     <MapMarker
                         key={i++}
-                        icon={marker.icon}
-                        width={marker.iconWidth}
-                        height={marker.iconHeight}
-                        lat={marker.lat}
-                        lon={marker.lon}
+                        icon={scooter.icon}
+                        width={scooter.iconWidth}
+                        height={scooter.iconHeight}
+                        lat={scooter.lat}
+                        lon={scooter.lon}
                         zoom={this.zoom}
-                        firstTilePosition={this.state.firstTilePosition} />
+                        firstTilePosition={this.state.firstTilePosition}
+                        onClick={(evt) => {
+                            this.centerOn(scooter.lat, scooter.lon) // Center on the scooter marker
+                            if (this.props.onScooterClick !== undefined)
+                                this.props.onScooterClick(scooter)
+                        }} />
                 )
             })
             // console.log("markerViews:", markerViews)
         }
 
         let fillMapStyle = {
-            width: this.mapBounds.right,
-            height: this.mapBounds.bottom
+            width: this.mapBounds.width,
+            height: this.mapBounds.height
         }
 
         return (
@@ -244,11 +283,11 @@ export default class Maps extends Component {
                     onHandlerStateChange={this.handleStateChange}>
                     <Animated.View style={[
                         styles.animatedView,
-                        transformStyle, 
+                        transformStyle,
                         fillMapStyle]}>
                         <View style={fillMapStyle}>
                             {tiles}
-                            {markerViews}
+                            {scootersViews}
                         </View>
                     </Animated.View>
                 </PanGestureHandler>

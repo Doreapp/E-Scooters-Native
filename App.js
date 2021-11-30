@@ -13,16 +13,24 @@ import {
 } from 'react-native-gesture-handler';
 
 import Maps from './components/Maps';
-import getScootersMarkers from './components/ScootersPins'
+import getScooters from './components/ScootersPins'
 
 const App: () => Node = () => {
-  markers = getScootersMarkers()
+  scooters = getScooters()
+
+  const onScooterClick = (scooter) => {
+    console.log("App: Click on scooter:", scooter)
+    // Note: 'scooter' param contains the exact same data as in './components/ScootersPins'
+    //    (data retreive via 'getScooters' function)
+    // TODO, here display scooters's info 
+  }
 
   return (
     <GestureHandlerRootView
       style={{ flex: 1 }}>
       <Maps
-        markers={markers}
+        scooters={scooters}
+        onScooterClick={onScooterClick}
       ></Maps>
     </GestureHandlerRootView>
   );

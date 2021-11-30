@@ -9,7 +9,8 @@ import React from 'react';
 import {
     View,
     Image,
-    StyleSheet
+    StyleSheet,
+    TouchableOpacity
 } from "react-native";
 
 // Default size
@@ -21,18 +22,19 @@ const TILE_SIZE = 256
 
 const styles = StyleSheet.create({
     default: {
-        position: 'absolute',
         width: WIDTH,
         height: HEIGHT,
         backgroundColor: "#ff0000",
+        zIndex: 1,
         borderRadius: 99,
-        zIndex: 10
     },
     image: {
-        position: 'absolute',
         width: WIDTH,
         height: HEIGHT,
-        zIndex: 10,
+        zIndex: 1,
+    },
+    touchableOpacity: {
+        position: 'absolute',
         // borderColor: "#00ffff",
         // borderWidth: 1,
     }
@@ -53,7 +55,16 @@ const pointToPixels = (lat, lon, zoom) => {
     }
 }
 
-export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, height }) => {
+/**
+ * @param icon - image source
+ * @param lat - latitude 
+ * @param lon - longitude
+ * @param zoom - map zoom level
+ * @param firstTilePosition - {x,y} position (indexes) of the current left-top tile
+ * @param width - width of the marker
+ * @param height - height of the marker 
+ */
+export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, height, onClick }) => {
     // Find position
     pixel = pointToPixels(lat, lon, zoom)
 
@@ -78,24 +89,27 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
         height: height
     }
 
-    if (icon == undefined) {
-        // Return default
-        return (
-            <View
-                style={[
-                    styles.default,
-                    transformStyle,
-                    sizeStyle]}
-            />
-        )
-    } else {
-        return (
-            <Image
-                style={[styles.image,
-                    transformStyle,
-                    sizeStyle]}
-                source={icon}
-            />
-        )
-    }
+    // Real marker display
+    const markerDisplay = (icon === undefined) ?
+        <View
+            style={[
+                styles.default,
+                sizeStyle]}
+        /> :
+        <Image
+            style={[styles.image,
+                sizeStyle]}
+            source={icon}
+        />
+
+    return (
+        <TouchableOpacity
+            activeOpacity={.8}
+            onPress={onClick}
+            style={[sizeStyle,
+                transformStyle,
+                styles.touchableOpacity]}>
+            {markerDisplay}
+        </TouchableOpacity>
+    )
 }
