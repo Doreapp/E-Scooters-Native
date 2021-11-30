@@ -120,7 +120,7 @@ export default class Maps extends Component {
     }
 
     updateFirstTilePosition(dx, dy) {
-        console.log("update first tile positon ", dx, dy)
+        // console.log("update first tile positon ", dx, dy)
         // For now, just handle x,y changes (not zoom)
 
         this.setState({
@@ -213,21 +213,26 @@ export default class Maps extends Component {
         }
 
         // Build marker views
-        markerViews = []
-        if (this.props.markers !== undefined) {
+        scootersViews = []
+        if (this.props.scooters !== undefined) {
             i = 0
-            this.props.markers.forEach(marker => {
+            this.props.scooters.forEach(scooter => {
                 // console.log("marker:", marker)
-                markerViews.push(
+                scootersViews.push(
                     <MapMarker
                         key={i++}
-                        icon={marker.icon}
-                        width={marker.iconWidth}
-                        height={marker.iconHeight}
-                        lat={marker.lat}
-                        lon={marker.lon}
+                        icon={scooter.icon}
+                        width={scooter.iconWidth}
+                        height={scooter.iconHeight}
+                        lat={scooter.lat}
+                        lon={scooter.lon}
                         zoom={this.zoom}
-                        firstTilePosition={this.state.firstTilePosition} />
+                        firstTilePosition={this.state.firstTilePosition}
+                        onClick={(evt) => {
+                            // console.log("Maps: OnClick on ",scooter)
+                            if (this.props.onScooterClick !== undefined)
+                                this.props.onScooterClick(scooter)
+                        }} />
                 )
             })
             // console.log("markerViews:", markerViews)
@@ -244,11 +249,11 @@ export default class Maps extends Component {
                     onHandlerStateChange={this.handleStateChange}>
                     <Animated.View style={[
                         styles.animatedView,
-                        transformStyle, 
+                        transformStyle,
                         fillMapStyle]}>
                         <View style={fillMapStyle}>
                             {tiles}
-                            {markerViews}
+                            {scootersViews}
                         </View>
                     </Animated.View>
                 </PanGestureHandler>

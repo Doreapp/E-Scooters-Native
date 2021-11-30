@@ -62,7 +62,7 @@ const brandPins = {
     }
 }
 
-export default getScootersMarkers = () => {
+export default getScooters = () => {
     result = []
     scooters.forEach(scooter => {
         pin = brandPins[scooter.brand]

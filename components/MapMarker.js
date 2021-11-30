@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
     },
     touchableOpacity: {
         position: 'absolute',
-        opacity: 1.0,
         // borderColor: "#00ffff",
         // borderWidth: 1,
     }
@@ -65,7 +64,7 @@ const pointToPixels = (lat, lon, zoom) => {
  * @param width - width of the marker
  * @param height - height of the marker 
  */
-export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, height }) => {
+export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, height, onClick }) => {
     // Find position
     pixel = pointToPixels(lat, lon, zoom)
 
@@ -90,12 +89,6 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
         height: height
     }
 
-    // On click function
-    // TODO: add to props a callback + scooter data (battery, id, etc )
-    const onClick = (evt) => {
-        console.log("On click on scooter", lat, lon)
-    }
-
     // Real marker display
     const markerDisplay = (icon === undefined) ?
         <View
@@ -111,7 +104,7 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
 
     return (
         <TouchableOpacity
-            activeOpacity={.5}
+            activeOpacity={.8}
             onPress={onClick}
             style={[sizeStyle,
                 transformStyle,
