@@ -303,8 +303,8 @@ export default class Maps extends Component {
                         fillMapStyle]}>
                         <View style={fillMapStyle}>
                             {tiles}
-                            {scootersViews}
                             {userPin}
+                            {scootersViews}
                         </View>
                     </Animated.View>
                 </PanGestureHandler>

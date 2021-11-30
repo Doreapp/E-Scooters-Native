@@ -20,16 +20,23 @@ import { View } from 'react-native';
 const App: () => Node = () => {
   scooters = getScooters()
 
-  let [userPosition, setUserPosition] = useState({
-    lat: 59.34801260548073,
-    lon: 18.07260567972617
-  })
+  let [userPosition, setUserPosition] = useState(undefined)
 
   const onScooterClick = (scooter) => {
     console.log("App: Click on scooter:", scooter)
     // Note: 'scooter' param contains the exact same data as in './components/ScootersPins'
     //    (data retreive via 'getScooters' function)
     // TODO, here display scooters's info 
+  }
+
+  const onLocationButtonPressed = () => {
+    setTimeout(function(){
+      // Put some delay to fake the fetching of the real position
+      setUserPosition({
+        lat: 59.34801260548073,
+        lon: 18.07260567972617
+      })
+    }, 1000);
   }
 
   return (
@@ -43,7 +50,7 @@ const App: () => Node = () => {
         ></Maps>
       </GestureHandlerRootView>
       <LocateUserButton
-        onClick={() => { console.log("You want to location?") }}
+        onClick={onLocationButtonPressed}
       />
     </View>
   );
