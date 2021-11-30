@@ -109,8 +109,8 @@ export default class Maps extends Component {
         // The firstTilePosition is the position (in OSM space) of the top-left tile 
         this.state = {
             firstTilePosition: {
-                x: parseInt((firstPosition.x - this.screenBounds.width/2) / TILE_SIZE),
-                y: parseInt((firstPosition.y - this.screenBounds.height/2) / TILE_SIZE)
+                x: parseInt((firstPosition.x - this.screenBounds.width / 2) / TILE_SIZE),
+                y: parseInt((firstPosition.y - this.screenBounds.height / 2) / TILE_SIZE)
             }
         }
     }
@@ -132,13 +132,13 @@ export default class Maps extends Component {
         const requestedCenterPosition = pointToPixels(lat, lon, this.zoom)
         // Current accurate (left-top corner) position in OSM state
         const currentAccuratePosition = {
-            x: this.state.firstTilePosition.x*TILE_SIZE,
-            y: this.state.firstTilePosition.y*TILE_SIZE
+            x: this.state.firstTilePosition.x * TILE_SIZE,
+            y: this.state.firstTilePosition.y * TILE_SIZE
         }
         // Requested position of the left-top corner (in OSM state)
         const requestedActualPosition = {
-            x: requestedCenterPosition.x - this.screenBounds.width/2 + this.current_translation.x,
-            y: requestedCenterPosition.y - this.screenBounds.height/2 + this.current_translation.y,
+            x: requestedCenterPosition.x - this.screenBounds.width / 2 + this.current_translation.x,
+            y: requestedCenterPosition.y - this.screenBounds.height / 2 + this.current_translation.y,
         }
 
         // Delta of positions (requested-current)
@@ -148,12 +148,12 @@ export default class Maps extends Component {
         }
 
         // Delta of tiles
-        let dx = parseInt(positionDelta.x/TILE_SIZE)
-        let dy = parseInt(positionDelta.y/TILE_SIZE)
+        let dx = parseInt(positionDelta.x / TILE_SIZE)
+        let dy = parseInt(positionDelta.y / TILE_SIZE)
 
-        if (dx*dx > 0 || dy*dy > 0){
+        if (dx * dx > 0 || dy * dy > 0) {
             // Update the "first" (top-left corner) tile (OSM) position
-            this.updateFirstTilePosition(dx,dy)
+            this.updateFirstTilePosition(dx, dy)
         }
 
         // Translate the remaining delta simulating a user input (translation) 
@@ -223,7 +223,7 @@ export default class Maps extends Component {
         }
 
         // Build tile views
-        tiles = []
+        let tiles = []
         for (let x = 0; x < this.horizontal_tile_count; x++) {
             for (let y = 0; y < this.vertical_tile_count; y++) {
                 tile_style = {
@@ -247,7 +247,7 @@ export default class Maps extends Component {
         }
 
         // Build marker views
-        scootersViews = []
+        let scootersViews = []
         if (this.props.scooters !== undefined) {
             i = 0
             this.props.scooters.forEach(scooter => {
@@ -258,6 +258,7 @@ export default class Maps extends Component {
                         icon={scooter.icon}
                         width={scooter.iconWidth}
                         height={scooter.iconHeight}
+                        centerY={scooter.iconHeight} // To point the marker to the actual position
                         lat={scooter.lat}
                         lon={scooter.lon}
                         zoom={this.zoom}
@@ -277,6 +278,21 @@ export default class Maps extends Component {
             height: this.mapBounds.height
         }
 
+        let userPin = undefined
+        if (this.props.userPosition !== undefined) {
+            userPin =
+                <MapMarker
+                    icon={require('../img/user_pin.png')}
+                    lat={this.props.userPosition.lat}
+                    lon={this.props.userPosition.lon}
+                    zoom={this.zoom}
+                    firstTilePosition={this.state.firstTilePosition}
+                    width={42}
+                    height={42}
+                    onClick={(evt) => { console.log("Yep i'm here") }}
+                />
+        }
+
         return (
             <View style={styles.container} >
                 <PanGestureHandler onGestureEvent={this.handleGesture}
@@ -287,6 +303,7 @@ export default class Maps extends Component {
                         fillMapStyle]}>
                         <View style={fillMapStyle}>
                             {tiles}
+                            {userPin}
                             {scootersViews}
                         </View>
                     </Animated.View>

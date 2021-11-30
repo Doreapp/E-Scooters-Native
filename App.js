@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React, { View } from 'react';
+import React, { useState } from 'react';
 import type { Node } from 'react';
 import {
   GestureHandlerRootView
@@ -14,9 +14,13 @@ import {
 
 import Maps from './components/Maps';
 import getScooters from './components/ScootersPins'
+import LocateUserButton from './components/LocateUserButton';
+import { View } from 'react-native';
 
 const App: () => Node = () => {
   scooters = getScooters()
+
+  let [userPosition, setUserPosition] = useState(undefined)
 
   const onScooterClick = (scooter) => {
     console.log("App: Click on scooter:", scooter)
@@ -25,14 +29,30 @@ const App: () => Node = () => {
     // TODO, here display scooters's info 
   }
 
+  const onLocationButtonPressed = () => {
+    setTimeout(function(){
+      // Put some delay to fake the fetching of the real position
+      setUserPosition({
+        lat: 59.34801260548073,
+        lon: 18.07260567972617
+      })
+    }, 1000);
+  }
+
   return (
-    <GestureHandlerRootView
-      style={{ flex: 1 }}>
-      <Maps
-        scooters={scooters}
-        onScooterClick={onScooterClick}
-      ></Maps>
-    </GestureHandlerRootView>
+    <View style={{ flex: 1 }} >
+      <GestureHandlerRootView
+        style={{ flex: 1 }}>
+        <Maps
+          scooters={scooters}
+          onScooterClick={onScooterClick}
+          userPosition={userPosition}
+        ></Maps>
+      </GestureHandlerRootView>
+      <LocateUserButton
+        onClick={onLocationButtonPressed}
+      />
+    </View>
   );
 };
 
