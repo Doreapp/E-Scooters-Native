@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React, { View } from 'react';
+import React, { useState, View } from 'react';
 import type { Node } from 'react';
 import {
   GestureHandlerRootView
@@ -17,6 +17,11 @@ import getScooters from './components/ScootersPins'
 
 const App: () => Node = () => {
   scooters = getScooters()
+
+  let [userPosition, setUserPosition] = useState({
+    lat: 59.34801260548073,
+    lon: 18.07260567972617
+  })
 
   const onScooterClick = (scooter) => {
     console.log("App: Click on scooter:", scooter)
@@ -31,6 +36,7 @@ const App: () => Node = () => {
       <Maps
         scooters={scooters}
         onScooterClick={onScooterClick}
+        userPosition={userPosition}
       ></Maps>
     </GestureHandlerRootView>
   );

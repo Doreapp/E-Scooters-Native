@@ -64,7 +64,18 @@ const pointToPixels = (lat, lon, zoom) => {
  * @param width - width of the marker
  * @param height - height of the marker 
  */
-export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, height, onClick }) => {
+export default MapMarker = ({
+    icon,
+    lat,
+    lon,
+    zoom,
+    firstTilePosition,
+    width,
+    height,
+    centerX,
+    centerY,
+    onClick
+}) => {
     // Find position
     pixel = pointToPixels(lat, lon, zoom)
 
@@ -75,12 +86,18 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
     if (height === undefined) {
         height = HEIGHT
     }
+    if (centerX === undefined) {
+        centerX = width / 2
+    }
+    if (centerY === undefined) {
+        centerY = height / 2
+    }
 
     // Position = pixelPosition - TilePosition
     let transformStyle = {
         transform: [
-            { translateX: pixel.x - firstTilePosition.x * TILE_SIZE - width / 2 },
-            { translateY: pixel.y - firstTilePosition.y * TILE_SIZE - height }
+            { translateX: pixel.x - firstTilePosition.x * TILE_SIZE - centerX },
+            { translateY: pixel.y - firstTilePosition.y * TILE_SIZE - centerY }
         ]
     }
 
@@ -91,25 +108,19 @@ export default MapMarker = ({ icon, lat, lon, zoom, firstTilePosition, width, he
 
     // Real marker display
     const markerDisplay = (icon === undefined) ?
-        <View
-            style={[
-                styles.default,
-                sizeStyle]}
-        /> :
-        <Image
-            style={[styles.image,
-                sizeStyle]}
+        <View style={[styles.default,
+            sizeStyle]}
+        /> : <Image style={[styles.image,
+            sizeStyle]}
             source={icon}
         />
 
-    return (
-        <TouchableOpacity
-            activeOpacity={.8}
-            onPress={onClick}
-            style={[sizeStyle,
-                transformStyle,
-                styles.touchableOpacity]}>
-            {markerDisplay}
-        </TouchableOpacity>
+    return (<TouchableOpacity activeOpacity={.8}
+        onPress={onClick}
+        style={[sizeStyle,
+            transformStyle,
+            styles.touchableOpacity]}>
+        {markerDisplay}
+    </TouchableOpacity>
     )
 }
