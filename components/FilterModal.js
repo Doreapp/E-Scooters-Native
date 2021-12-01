@@ -1,6 +1,5 @@
 import React, { Component, useState } from 'react';
 import { View, Image, Text, StyleSheet, Slider, TouchableOpacity } from 'react-native';
-//import Slider from 'react-native-slider';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 
 const styles = StyleSheet.create({
