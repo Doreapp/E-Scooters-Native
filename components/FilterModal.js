@@ -1,6 +1,7 @@
 import React, { Component, useState } from 'react';
-import { View, Image, Text, StyleSheet, Slider, TouchableOpacity, CheckBox } from 'react-native';
+import { View, Image, Text, StyleSheet, Slider, TouchableOpacity } from 'react-native';
 //import Slider from 'react-native-slider';
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
 const styles = StyleSheet.create({
     filterView: {
@@ -11,10 +12,6 @@ const styles = StyleSheet.create({
         width: 300,
         padding: 10,
         paddingBottom: 500
-    },
-    text: {
-        fontSize: 50,
-        color: "white"
     },
     title: {
         fontSize: 20,
@@ -28,49 +25,69 @@ const styles = StyleSheet.create({
     brandContainer: {
         flexDirection: 'row',
         padding: 10
+    },
+    checkBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingBottom: 10
     }
 });
-const markerDisplay = () =>
-<Image style={[styles.image,
-    sizeStyle]}
-    source={icon}
-/>
+const CheckBox = ({ selected, onPress, style, size = 30, color = 'white', text, ...props}) => (
+    <View style={[styles.checkBox]}>
+        <Text style={styles.title}> {text} </Text>
+        <TouchableOpacity onPress={onPress} {...props}>
+            <Icon
+                size={size}
+                color={color}
+                name={ selected ? 'check-box' : 'check-box-outline-blank'}
+            />
+        </TouchableOpacity>
+    </View>
+)
 
 const FilterModal = ({ onClick }) => {
-    const [value, setValue] = useState(0.2);
+    const [distValue, setDistValue] = useState(0.2);
+    const [batteryValue, setBatteryValue] = useState(0.2);
+    const [priceValue, setPriceValue] = useState(0.2);
+    const [lockUpFee, setlockUpFee] = useState(false);
+
     return (
             <View style={styles.filterView}>
                 <Text style={styles.title}>Distance</Text>
                 <Slider
-                    value={value}
-                    onValueChange={value => setValue({value})} />
+                    value={distValue}
+                    onValueChange={distValue => setDistValue({distValue})} />
                 <Text style={styles.title}>Battery</Text>
                 <Slider
-                    value={value}
-                    onValueChange={value => setValue({value})} />
-                <Text style={styles.title}>No lock up fee</Text>
+                    value={batteryValue}
+                    onValueChange={batteryValue => setBatteryValue({batteryValue})} />
+                <CheckBox 
+                    text={'No lock up fee'}
+                    selected={lockUpFee} 
+                    onPress={() => setlockUpFee(!lockUpFee)}/>
                 <Text style={styles.title}>Max price/minute</Text>
                 <Slider
-                    value={value}
-                    onValueChange={value => setValue({value})} />
+                    value={priceValue}
+                    onValueChange={priceValue => setPriceValue({priceValue})} />
                 <Text style={styles.title}>Brands</Text>
                 <View style={styles.brandContainer}>
                     <TouchableOpacity>
                         <Image 
                             source={require('../img/lime_pin.png')}
                             style={styles.brandimage} 
-                            onClick={() => console.log("lime")}/>
+                            onPress={() => console.log("lime")}/>
                     </TouchableOpacity>
                     <TouchableOpacity>
                         <Image 
                             source={require('../img/voi_pin.png')}
-                            style={styles.brandimage} />
+                            style={styles.brandimage}
+                            onPress={() => console.log("voi")} />
                     </TouchableOpacity>
                     <TouchableOpacity>
                         <Image 
                             source={require('../img/bird_pin.png')}
                             style={styles.brandimage}
-                            onPress={() => console.log("lime")} />
+                            onPress={() => console.log("bird")} />
                     </TouchableOpacity>
                 </View>
             </View>
