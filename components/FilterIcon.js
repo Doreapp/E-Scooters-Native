@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     iconFalse: {
         flexDirection: 'row',
         position: 'absolute',
-        bottom: 748, left: 300,
+        bottom: 748, left: 340,
         justifyContent: 'center', 
         alignItems: 'center'
         
@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
     iconView: {
         flexDirection: 'row',
         position: 'absolute',
-        bottom: 0, left: 300,
+        bottom: 0, left: 340,
         justifyContent: 'center', 
         alignItems: 'center'
       }

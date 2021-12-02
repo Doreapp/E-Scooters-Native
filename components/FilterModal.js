@@ -44,7 +44,7 @@ const CheckBox = ({ selected, onPress, style, size = 30, color = 'white', text, 
     </View>
 )
 
-const FilterModal = ({ onClick }) => {
+const FilterModal = () => {
     const [distValue, setDistValue] = useState(0.2);
     const [batteryValue, setBatteryValue] = useState(0.5);
     const [priceValue, setPriceValue] = useState(0.1);

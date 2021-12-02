@@ -15,6 +15,7 @@
  import Maps from './components/Maps';
  import FilterIcon from './components/FilterIcon';
  import FilterModal from './components/FilterModal';
+ import ScooterModal from './components/ScooterModal';
  import getScooters from './components/ScootersPins'
  import LocateUserButton from './components/LocateUserButton';
  import { View, TouchableOpacity } from 'react-native';
@@ -25,9 +26,11 @@
    let [userPosition, setUserPosition] = useState(undefined)
  
    const [toggleElem, setToggleElem] = useState(false);
+   const [tmpScooter, setTmpScooter] = useState(null);
  
    const onScooterClick = (scooter) => {
      console.log("App: Click on scooter:", scooter)
+     setTmpScooter(scooter)
      // Note: 'scooter' param contains the exact same data as in './components/ScootersPins'
      //    (data retreive via 'getScooters' function)
      // TODO, here display scooters's info 
@@ -42,7 +45,7 @@
        })
      }, 1000);
    }
- 
+
    return (
      <View style={{ flex: 1 }} >
        <GestureHandlerRootView
@@ -63,6 +66,9 @@
             setToggleElem = {setToggleElem}/>
       </TouchableOpacity>
       {toggleElem ? <FilterModal /> : <View />}
+      {tmpScooter ? <ScooterModal 
+                      scooter={tmpScooter} 
+                      setScooter={setTmpScooter}/> : <View />}
      </View>
    );
  };
