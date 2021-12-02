@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
         marginBottom: 100,
         width: 300,
         padding: 10,
-        paddingBottom: 500
+        paddingBottom: 500,
     },
     title: {
         fontSize: 20,
@@ -46,8 +46,8 @@ const CheckBox = ({ selected, onPress, style, size = 30, color = 'white', text, 
 
 const FilterModal = ({ onClick }) => {
     const [distValue, setDistValue] = useState(0.2);
-    const [batteryValue, setBatteryValue] = useState(0.2);
-    const [priceValue, setPriceValue] = useState(0.2);
+    const [batteryValue, setBatteryValue] = useState(0.5);
+    const [priceValue, setPriceValue] = useState(0.1);
     const [lockUpFee, setlockUpFee] = useState(false);
 
     return (
